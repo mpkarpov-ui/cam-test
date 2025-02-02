@@ -6,13 +6,12 @@
 #define LED_ORANGE 41
 #define LED_RED 42
 
+// SPI
 #define SPI_SCK 14
-
-// Schematic has MOSI @ 16, MISO @ 15. These pins are swapped, so we swap them back in code.
 #define SPI_MOSI 15
 #define SPI_MISO 16
 
-//buzzer pin
+// buzzer pin
 #define BUZZER_PIN 35
 #define BUZZER_CHANNEL 1
 
@@ -24,7 +23,8 @@
 #define CAN_FAULT 26
 
 
-//on/off pins
-#define REG_12V 44
-#define ON_OFF_2 2
-#define ON_OFF_VTX 4
+// on/off pins
+// #define REG_12V 44
+#define ON_OFF_1 3
+#define ON_OFF_2 4
+#define ON_OFF_VTX 2
