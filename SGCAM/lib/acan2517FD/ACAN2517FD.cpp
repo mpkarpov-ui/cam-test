@@ -676,10 +676,10 @@ void ACAN2517FD::appendInControllerTxFIFO (const CANFDMessage & inMessage) {
     flags |= 1 << 7 ; // Set FDF bit
     break ;
   case CANFDMessage::CANFD_WITH_BIT_RATE_SWITCH :
-    flags |= 1 << 7 ; // Set FDF bit
-    if (mHasDataBitRate) {
-      flags |= 1 << 6 ; // Set BRS bit
-    }
+    // flags |= 1 << 7 ; // Set FDF bit
+    // if (mHasDataBitRate) {
+    //   flags |= 1 << 6 ; // Set BRS bit
+    // }
     break ;
   }
 //--- Word count
@@ -741,10 +741,10 @@ bool ACAN2517FD::sendViaTXQ (const CANFDMessage & inMessage) {
         flags |= 1 << 7 ; // Set FDF bit
         break ;
       case CANFDMessage::CANFD_WITH_BIT_RATE_SWITCH :
-        flags |= 1 << 7 ; // Set FDF bit
-        if (mHasDataBitRate) {
-          flags |= 1 << 6 ; // Set BRS bit
-        }
+        // flags |= 1 << 7 ; // Set FDF bit
+        // if (mHasDataBitRate) {
+        //   flags |= 1 << 6 ; // Set BRS bit
+        // }
         break ;
       }
     //--- Word count

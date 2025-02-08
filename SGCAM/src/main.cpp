@@ -7,13 +7,13 @@
 
 bool selected_camera = false; // false --> camera 1, true --> camera 2
 
+// #define MCU_TEST
 // #define VIDEO_MUX
-// #define CAN_TEST
+#define CAN_TEST
 // #define REG_TEST
 // #define FULL_TEST
 // #define REG_OFF
 // #define MOSFET_TEST
-#define CHRISTMAS_TEST
 
 #ifdef CAN_TEST
 
@@ -83,7 +83,7 @@ void setup() {
       digitalWrite(CAN_SILENT, LOW);
 
       ACAN2517FDSettings can_settings (ACAN2517FDSettings::OSC_40MHz, 125*1000, ACAN2517FDSettings::DATA_BITRATE_x1  );
-      can_settings.mRequestedMode = ACAN2517FDSettings::Normal20B;
+      can_settings.mRequestedMode = ACAN2517FDSettings::ExternalLoopBack;
 
       const uint32_t errorCode = can.begin (can_settings, [] { can.isr () ; }) ;
       if (0 == errorCode) {
@@ -147,6 +147,11 @@ void loop() {
     // Serial.print("Power ");
     // Serial.println(power * 240 / 1000000.0);
 
+    #ifdef MCU_TEST
+      Serial.println("Hi from MCU!");
+      delay(500);
+    #endif
+
     #ifdef VIDEO_MUX
       delay(5000);
       bool cur_stream = toggle_camera();
@@ -181,14 +186,14 @@ void loop() {
 
         // error: assigning to an array from an initializer list
         // message.data = {0, 1, 2, 3, 4, 5, 6, 7} ;
-        message.data[0] = 7;
-        message.data[1] = 7;
-        message.data[2] = 5;
-        message.data[3] = 2;
-        message.data[4] = 8;
-        message.data[5] = 3;
-        message.data[6] = 3;
-        message.data[7] = 4;
+        message.data[0] = 0x01;
+        message.data[1] = 0x23;
+        message.data[2] = 0x45;
+        message.data[3] = 0x67;
+        message.data[4] = 0x89;
+        message.data[5] = 0xAB;
+        message.data[6] = 0xCD;
+        message.data[7] = 0xEF;
 
         message.len = 8;
 
