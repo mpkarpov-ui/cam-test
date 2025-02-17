@@ -6,6 +6,7 @@
 #include <ACAN2517FDSettings.h>
 
 bool selected_camera = false; // false --> camera 1, true --> camera 2
+#define I2C_ADDR 0x69
 
 // #define VIDEO_MUX
 // #define CAN_TEST
@@ -13,7 +14,8 @@ bool selected_camera = false; // false --> camera 1, true --> camera 2
 // #define FULL_TEST
 // #define REG_OFF
 // #define MOSFET_TEST
-#define CHRISTMAS_TEST
+// #define CHRISTMAS_TEST
+#define I2C_TEST
 
 #ifdef CAN_TEST
 
@@ -26,6 +28,21 @@ ACAN2517FD can (CAN_CS, SPI, CAN_INT) ; // You can use SPI2, SPI3, if provided b
 bool cur_light_state = false;
 #endif
 
+
+void onRequest() {
+  Serial.println("onRequest");
+  Serial.println("Sending 0xEB...");
+  Wire1.write((uint8_t*) 0xEB, 1);
+}
+
+void onReceive(int len) {
+  // Serial.printf("onReceive[%d]: ", len);
+  Serial.print("Reading: ");
+  while (Wire1.available()) {
+    Serial.print(Wire1.read(), HEX);
+  }
+  Serial.println(" (EOT)");
+}
 
 void setup() {
     Serial.begin(9600);
@@ -41,6 +58,9 @@ void setup() {
 
     SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
     Wire.begin();
+    Wire1.onReceive(onReceive);
+    Wire1.onRequest(onRequest);
+    Wire1.begin(I2C_ADDR, 37, 36, 100000);
 
     #ifdef FULL_TEST
       pinMode(REG_12V, OUTPUT);
@@ -146,6 +166,12 @@ void loop() {
     // Serial.println(current * 1.2 / 1000.0);
     // Serial.print("Power ");
     // Serial.println(power * 240 / 1000000.0);
+
+    #ifdef I2C_TEST
+
+
+
+    #endif
 
     #ifdef VIDEO_MUX
       delay(5000);
