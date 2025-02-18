@@ -46,9 +46,9 @@ void setup() {
       pinMode(ON_OFF_1, OUTPUT);
       pinMode(ON_OFF_2, OUTPUT);
       pinMode(ON_OFF_VTX, OUTPUT);
-      digitalWrite(ON_OFF_1, LOW);
+      digitalWrite(ON_OFF_1, HIGH);
       digitalWrite(ON_OFF_2, LOW);
-      digitalWrite(ON_OFF_VTX, LOW);
+      digitalWrite(ON_OFF_VTX, HIGH);
 
       pinMode(VIDEO_SELECT, OUTPUT);
       digitalWrite(VIDEO_SELECT, LOW);
@@ -261,28 +261,28 @@ void loop() {
 
     #ifdef FULL_TEST
 
-      delay(3000);
-      digitalWrite(ON_OFF_1, HIGH);
-      digitalWrite(LED_RED, HIGH);
-      /*
-      delay(5000);
-      digitalWrite(ON_OFF_2, HIGH);
-      digitalWrite(LED_ORANGE, HIGH);*/
+      // delay(3000);
+      // digitalWrite(ON_OFF_1, HIGH);
+      // digitalWrite(LED_RED, HIGH);
+      // /*
+      // delay(5000);
+      // digitalWrite(ON_OFF_2, HIGH);
+      // digitalWrite(LED_ORANGE, HIGH);*/
 
-      delay(5000);
-      digitalWrite(ON_OFF_VTX, HIGH);
-      digitalWrite(LED_GREEN, HIGH);
+      // delay(5000);
+      // digitalWrite(ON_OFF_VTX, HIGH);
+      // digitalWrite(LED_GREEN, HIGH);
 
-      delay(10000);
-      toggle_camera();
+      // delay(10000);
+      // toggle_camera();
 
-      delay(5000);
-      digitalWrite(LED_GREEN, LOW);
-      digitalWrite(LED_RED, LOW);
-      digitalWrite(ON_OFF_1, LOW);
-      // digitalWrite(ON_OFF_2, LOW);
-      digitalWrite(ON_OFF_VTX, LOW);
-      toggle_camera();
+      // delay(5000);
+      // digitalWrite(LED_GREEN, LOW);
+      // digitalWrite(LED_RED, LOW);
+      // digitalWrite(ON_OFF_1, LOW);
+      // // digitalWrite(ON_OFF_2, LOW);
+      // digitalWrite(ON_OFF_VTX, LOW);
+      // toggle_camera();
       
     #endif
 
