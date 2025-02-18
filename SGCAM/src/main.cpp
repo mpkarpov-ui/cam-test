@@ -6,16 +6,15 @@
 #include <ACAN2517FDSettings.h>
 
 bool selected_camera = false; // false --> camera 1, true --> camera 2
-#define I2C_ADDR 0x69
 
+// #define MCU_TEST
 // #define VIDEO_MUX
 // #define CAN_TEST
 // #define REG_TEST
-// #define FULL_TEST
+//#define FULL_TEST
 // #define REG_OFF
 // #define MOSFET_TEST
 // #define CHRISTMAS_TEST
-#define I2C_TEST
 
 #ifdef CAN_TEST
 
@@ -29,20 +28,66 @@ bool cur_light_state = false;
 #endif
 
 
-void onRequest() {
-  Serial.println("onRequest");
-  Serial.println("Sending 0xEB...");
-  Wire1.write((uint8_t*) 0xEB, 1);
-}
+#define CAMBOARD_I2C_ADDR 0x69
+
+enum class CameraCommand {
+  CAMERA0_OFF = 0,
+  CAMERA0_ON = 1,
+  CAMERA1_OFF = 2,
+  CAMERA1_ON = 3,
+  VTX_OFF = 4,
+  VTX_ON = 5,
+  MUX_0 = 6,
+  MUX_1 = 7
+};
 
 void onReceive(int len) {
-  // Serial.printf("onReceive[%d]: ", len);
-  Serial.print("Reading: ");
+  Serial.print("Recieved: ");
   while (Wire1.available()) {
-    Serial.print(Wire1.read(), HEX);
+    uint8_t recieve = Wire1.read();
+    // Serial.print(recieve);
+    // Serial.print(": ");
+    
+    switch(recieve) {
+      case 0:
+        digitalWrite(CAM1_ON_OFF, LOW);
+        Serial.println("Case 0\n");
+        break;
+      case 1:
+        digitalWrite(CAM1_ON_OFF, HIGH);
+        Serial.println("Case 1\n");
+        break;
+      case 2:
+        digitalWrite(CAM2_ON_OFF, LOW);
+        Serial.println("Case 2\n");
+        break;
+      case 3:
+        digitalWrite(CAM2_ON_OFF, HIGH);
+        Serial.println("Case 3\n");
+        break;
+      case 4:
+        digitalWrite(VTX_ON_OFF, LOW);
+        Serial.println("Case 4\n");
+        break;
+      case 5:
+        digitalWrite(VTX_ON_OFF, HIGH);
+        Serial.println("Case 5\n");
+        break;
+      case 6:
+        digitalWrite(VIDEO_SELECT, LOW);
+        Serial.println("Case 6\n");
+        break;
+      case 7:
+        digitalWrite(VIDEO_SELECT, HIGH);
+        Serial.println("Case 7\n");
+        break;
+      default:
+        break;
+    }
   }
-  Serial.println(" (EOT)");
+  // Serial.println("(EOT)");
 }
+
 
 void setup() {
     Serial.begin(9600);
@@ -56,15 +101,28 @@ void setup() {
     delay(3000);
     Serial.println("Begin setup.");
 
-    SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
-    Wire.begin();
+    SPI.begin(CAN_SPI_SCK, CAN_SPI_MISO, CAN_SPI_MOSI);
+    Wire.begin(BATTSENSE_SDA, BATTSENSE_SCL);
+    Wire1.setPins(I2C_SDA, I2C_SCL);
+
     Wire1.onReceive(onReceive);
-    Wire1.onRequest(onRequest);
-    Wire1.begin(I2C_ADDR, 37, 36, 100000);
+    Wire1.begin((uint8_t)CAMBOARD_I2C_ADDR);
+
+    pinMode(CAM1_RX, INPUT);
+    pinMode(CAM1_TX, OUTPUT);
+
+    Serial1.setPins(CAM1_RX, CAM1_TX);
+    Serial1.begin(115200, SERIAL_8N1, CAM1_RX, CAM1_TX);
+
+    pinMode(CAM1_ON_OFF, OUTPUT);
+    pinMode(VTX_ON_OFF, OUTPUT);
+    digitalWrite(CAM1_ON_OFF, LOW);
+    digitalWrite(VTX_ON_OFF, LOW);
+
 
     #ifdef FULL_TEST
-      pinMode(REG_12V, OUTPUT);
-      digitalWrite(REG_12V, HIGH);
+      // pinMode(REG_12V, OUTPUT);
+      // digitalWrite(REG_12V, HIGH);
 
       pinMode(ON_OFF_2, OUTPUT);
       pinMode(ON_OFF_VTX, OUTPUT);
@@ -167,10 +225,33 @@ void loop() {
     // Serial.print("Power ");
     // Serial.println(power * 240 / 1000000.0);
 
-    #ifdef I2C_TEST
+    // Serial1.flush();
+
+    // uint8_t read1[3] = {0xCC, 0x00, 0x60}; 
+    // uint8_t read2[5];
+    // Serial1.write(read1, 3);
+    // delay(100);
+    // //Serial.println(Serial1.available());
+    
+    // if(Serial1.available()) {
+    //   digitalWrite(LED_GREEN, HIGH);
+    //   delay(500);
+    //   digitalWrite(LED_GREEN, LOW);
+    // }
+    //   Serial1.readBytes(read2, 5);
+    //   Serial.println(read2[0]);
+    //   Serial.println(read2[1]);
+    //   Serial.println(read2[2]);
+    //   Serial.println(read2[3]);
+    //   Serial.println(read2[4]);
+
+    delay(20);
 
 
 
+    #ifdef MCU_TEST
+      Serial.println("hi!");
+      delay(500);
     #endif
 
     #ifdef VIDEO_MUX
