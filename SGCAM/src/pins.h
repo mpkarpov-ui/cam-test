@@ -32,7 +32,8 @@
 #define CAN_FAULT 26
 
 // Buzzer - defined in buzzer.cpp
-// #define BUZZER 35
+#define BUZZER_PIN 35
+#define BUZZER_CHANNEL 1
 
 //LEDs
 #define LED_BLUE 39

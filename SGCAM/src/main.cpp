@@ -31,14 +31,14 @@ bool cur_light_state = false;
 #define CAMBOARD_I2C_ADDR 0x69
 
 enum class CameraCommand {
-  CAMERA0_OFF = 0,
-  CAMERA0_ON = 1,
-  CAMERA1_OFF = 2,
-  CAMERA1_ON = 3,
+  CAMERA1_OFF = 0,
+  CAMERA1_ON = 1,
+  CAMERA2_OFF = 2,
+  CAMERA2_ON = 3,
   VTX_OFF = 4,
   VTX_ON = 5,
-  MUX_0 = 6,
-  MUX_1 = 7
+  MUX_1 = 6,
+  MUX_2 = 7
 };
 
 void onReceive(int len) {
@@ -98,7 +98,22 @@ void setup() {
 
 
     digitalWrite(LED_ORANGE, HIGH);
-    delay(3000);
+    delay(200);
+
+    // Startup tone
+    // Immediate startup tone
+    pinMode(BUZZER_PIN, OUTPUT);
+    digitalWrite(BUZZER_PIN, LOW);
+    ledcAttachPin(BUZZER_PIN, BUZZER_CHANNEL);
+
+    ledcWriteTone(BUZZER_CHANNEL, 2730);
+    delay(300);
+    ledcWriteTone(BUZZER_CHANNEL, 0);
+    delay(500);
+    ledcWriteTone(BUZZER_CHANNEL, 2730);
+    delay(300);
+    ledcWriteTone(BUZZER_CHANNEL, 0);
+
     Serial.println("Begin setup.");
 
     SPI.begin(CAN_SPI_SCK, CAN_SPI_MISO, CAN_SPI_MOSI);
@@ -114,72 +129,18 @@ void setup() {
     Serial1.setPins(CAM1_RX, CAM1_TX);
     Serial1.begin(115200, SERIAL_8N1, CAM1_RX, CAM1_TX);
 
+    pinMode(VIDEO_SELECT, OUTPUT);
+    digitalWrite(VIDEO_SELECT, LOW);
+
+    
+    pinMode(CAM2_ON_OFF, OUTPUT);
     pinMode(CAM1_ON_OFF, OUTPUT);
     pinMode(VTX_ON_OFF, OUTPUT);
-    digitalWrite(CAM1_ON_OFF, LOW);
+    digitalWrite(CAM2_ON_OFF, LOW);
+    digitalWrite(CAM1_ON_OFF, HIGH);
     digitalWrite(VTX_ON_OFF, LOW);
 
-
-    #ifdef FULL_TEST
-      // pinMode(REG_12V, OUTPUT);
-      // digitalWrite(REG_12V, HIGH);
-
-      pinMode(ON_OFF_2, OUTPUT);
-      pinMode(ON_OFF_VTX, OUTPUT);
-      digitalWrite(ON_OFF_2, LOW);
-      digitalWrite(ON_OFF_VTX, LOW);
-
-      pinMode(VIDEO_SELECT, OUTPUT);
-      digitalWrite(VIDEO_SELECT, LOW);
-    #endif
-  
-    #ifdef CHRISTMAS_TEST
-      pinMode(BUZZER_PIN, OUTPUT);
-      digitalWrite(BUZZER_PIN, LOW);
-      ledcAttachPin(BUZZER_PIN, BUZZER_CHANNEL);
-    #endif
-
-    #ifdef REG_OFF
-      pinMode(REG_12V, OUTPUT);
-      digitalWrite(REG_12V, LOW);
-    #endif
-
-    #ifdef REG_TEST
-      pinMode(REG_12V, OUTPUT);
-      digitalWrite(REG_12V, HIGH);
-    #endif
-
-    #ifdef CAN_TEST
-      Serial.println("Initializing CAN Controller");
-
-      pinMode(CAN_CS, OUTPUT);
-      pinMode(CAN_INT, INPUT);
-      pinMode(CAN_SILENT, OUTPUT);
-
-      pinMode(CAN_FAULT, INPUT);
-
-      digitalWrite(CAN_SILENT, LOW);
-
-      ACAN2517FDSettings can_settings (ACAN2517FDSettings::OSC_40MHz, 125*1000, ACAN2517FDSettings::DATA_BITRATE_x1  );
-      can_settings.mRequestedMode = ACAN2517FDSettings::Normal20B;
-
-      const uint32_t errorCode = can.begin (can_settings, [] { can.isr () ; }) ;
-      if (0 == errorCode) {
-        Serial.println ("Can ok") ;
-      }else{
-        Serial.print ("Error Can: 0x") ;
-        Serial.println (errorCode, HEX) ;
-      }
-    #endif
-
-    #ifdef MOSFET_TEST
-      pinMode(ON_OFF_2, OUTPUT);
-      pinMode(ON_OFF_VTX, OUTPUT);
-      digitalWrite(ON_OFF_2, LOW);
-      digitalWrite(ON_OFF_VTX, LOW);
-    #endif
-
-    delay(500);
+    delay(1000);
     
     Serial.println("Setup complete.");
     digitalWrite(LED_ORANGE, LOW);
@@ -208,8 +169,51 @@ bool toggle_camera() {
     return selected_camera;
 }
 
+uint8_t crc8_dvb_s2(uint8_t crc, unsigned char a)
+{
+    crc ^= a;
+    for (int ii = 0; ii < 8; ++ii) {
+        if (crc & 0x80) {
+            crc = (crc << 1) ^ 0xD5;
+        } else {
+            crc = crc << 1;
+        }
+    }
+
+    return crc;
+}
+
+uint8_t generate_crc(uint8_t* buf, unsigned int buf_len) {
+  uint8_t crc = 0x00;
+  for(unsigned i = 0; i < buf_len; i++) {
+    crc = crc8_dvb_s2(crc, buf[i]);
+  }
+  return crc;
+}
+
+bool check_crc(uint8_t* buf, unsigned int buf_len, uint8_t expected_crc) {
+  return generate_crc(buf, buf_len) == expected_crc;
+}
+
 static unsigned gSendDate = 0 ;
 static unsigned gSentCount = 0 ;
+
+void read_mem_cap_data() {
+  uint8_t buf[32];
+  if(Serial1.available()) {
+    Serial1.read(buf, 4);
+    uint8_t msg_len = buf[2] - 1; // account for offsets
+    Serial.print("MSG LEN: ");
+    Serial.println(msg_len);
+
+    Serial1.read(buf, msg_len);
+    for(int i = 1; i < msg_len; i++) {
+      Serial.print((char)buf[i]);
+    }
+    Serial.print("   CRC: ");
+    Serial.println(buf[msg_len]);
+  }
+}
 
 void loop() {
     // int power = read_reg(0x8, 3);
@@ -225,27 +229,78 @@ void loop() {
     // Serial.print("Power ");
     // Serial.println(power * 240 / 1000000.0);
 
-    // Serial1.flush();
+    Serial.println("Camera read test...");
+    delay(200);
+    Serial.println("go");
+    Serial1.flush();
 
-    // uint8_t read1[3] = {0xCC, 0x00, 0x60}; 
-    // uint8_t read2[5];
-    // Serial1.write(read1, 3);
-    // delay(100);
-    // //Serial.println(Serial1.available());
+    // calculate crc
+    uint8_t crc = 0x00;
+    crc = crc8_dvb_s2(crc, 0xCC);
+    crc = crc8_dvb_s2(crc, 0x00);
+
+    uint8_t get_device_info_cmd_raw[2] = {0xCC, 0x00};
+    uint8_t get_device_info_cmd[3] = {0xCC, 0x00, generate_crc(get_device_info_cmd_raw, 2)};
+
+    uint8_t stop_recording_cmd_raw[3] = {0xCC, 0x01, 0x01};
+    uint8_t stop_recording_cmd[4] = {0xCC, 0x01, 0x01, generate_crc(stop_recording_cmd_raw, 3)};
+
+    uint8_t start_recording_cmd_raw[3] = {0xCC, 0x01, 0x03};
+    uint8_t start_recording_cmd[4] = {0xCC, 0x01, 0x03, generate_crc(start_recording_cmd_raw, 3)};
+
+    uint8_t get_setting_raw[4] = {0xCC, 0x11, 0x03, 0x00};
+    uint8_t get_setting[5] = {0xCC, 0x11, 0x03, 0x00, generate_crc(get_setting_raw, 4)};
+
+    Serial.print("Writing commands to Serial 1 with crc 0x");
+    Serial.println(generate_crc(get_setting_raw, 4), HEX);
+
+    uint8_t return_buf[64];
+    // Serial1.write(stop_recording_cmd, 4);
+    Serial1.write(get_setting, 5);
+
+
+    Serial.println("Reading..?");
+
+    read_mem_cap_data();
     
     // if(Serial1.available()) {
     //   digitalWrite(LED_GREEN, HIGH);
     //   delay(500);
     //   digitalWrite(LED_GREEN, LOW);
-    // }
-    //   Serial1.readBytes(read2, 5);
-    //   Serial.println(read2[0]);
-    //   Serial.println(read2[1]);
-    //   Serial.println(read2[2]);
-    //   Serial.println(read2[3]);
-    //   Serial.println(read2[4]);
 
-    delay(20);
+    //   while(Serial1.available()) {
+    //     uint8_t b = Serial1.read();
+    //     Serial.print((char)b);
+    //   }
+    //   Serial.println("");
+
+      // Serial.print("Bytes available for read: ");
+      // Serial.println(Serial1.available());
+  
+      // Serial1.readBytes(return_buf, 5);
+      // Serial.println(return_buf[0], HEX);
+      // Serial.println(return_buf[1], HEX);
+
+      // uint16_t features = 0;
+      // features |= return_buf[2] & 0xff;
+      // features |= ((return_buf[3] & 0xff) << 8);
+
+      // Serial.println(features, BIN);
+      // Serial.println(return_buf[4], HEX);
+
+
+
+      // uint8_t exp_crc = return_buf[4];
+      // uint8_t msg_buf[4] = {return_buf[0], return_buf[1], return_buf[2], return_buf[3]};
+
+      // if(check_crc(msg_buf, 4, exp_crc)) {
+      //   Serial.println("Message is valid runcam message");
+      // }
+    // }
+
+
+
+    delay(1000);
 
 
 
