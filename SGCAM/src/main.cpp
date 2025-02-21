@@ -98,7 +98,22 @@ void setup() {
 
 
     digitalWrite(LED_ORANGE, HIGH);
-    delay(3000);
+    delay(200);
+
+    // Startup tone
+    // Immediate startup tone
+    pinMode(BUZZER_PIN, OUTPUT);
+    digitalWrite(BUZZER_PIN, LOW);
+    ledcAttachPin(BUZZER_PIN, BUZZER_CHANNEL);
+
+    ledcWriteTone(BUZZER_CHANNEL, 2730);
+    delay(300);
+    ledcWriteTone(BUZZER_CHANNEL, 0);
+    delay(500);
+    ledcWriteTone(BUZZER_CHANNEL, 2730);
+    delay(300);
+    ledcWriteTone(BUZZER_CHANNEL, 0);
+
     Serial.println("Begin setup.");
 
     SPI.begin(CAN_SPI_SCK, CAN_SPI_MISO, CAN_SPI_MOSI);
