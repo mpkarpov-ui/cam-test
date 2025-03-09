@@ -132,9 +132,11 @@ void setup() {
     pinMode(CAM1_ON_OFF, OUTPUT);
     pinMode(CAM2_ON_OFF, OUTPUT);
     pinMode(VTX_ON_OFF, OUTPUT);
+    pinMode(VIDEO_SELECT, OUTPUT);
     digitalWrite(CAM1_ON_OFF, LOW);
     digitalWrite(CAM2_ON_OFF, LOW);
     digitalWrite(VTX_ON_OFF, LOW);
+    digitalWrite(VIDEO_SELECT, LOW);
 
 
     #ifdef FULL_TEST
