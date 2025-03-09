@@ -130,8 +130,10 @@ void setup() {
     Serial1.begin(115200, SERIAL_8N1, CAM1_RX, CAM1_TX);
 
     pinMode(CAM1_ON_OFF, OUTPUT);
+    pinMode(CAM2_ON_OFF, OUTPUT);
     pinMode(VTX_ON_OFF, OUTPUT);
     digitalWrite(CAM1_ON_OFF, LOW);
+    digitalWrite(CAM2_ON_OFF, LOW);
     digitalWrite(VTX_ON_OFF, LOW);
 
 
