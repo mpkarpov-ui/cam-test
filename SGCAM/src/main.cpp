@@ -41,45 +41,86 @@ enum class CameraCommand {
   MUX_1 = 7
 };
 
+struct cam_state {
+  bool cam1_on = false;
+  bool cam2_on = false;
+  bool cam1_rec = false;
+  bool cam2_rec = false;
+  bool vtx_on = false;
+  bool vmux_state = false; // false=CAM1, true=CAM2
+  bool cam_ack = false;
+};
+
+cam_state current_state;
+
+void onRequest() {
+
+  uint8_t cam_dat = 0;
+
+  cam_dat |= (current_state.cam1_on) << 1;
+  cam_dat |= (current_state.cam2_on) << 0;
+
+  cam_dat |= (current_state.cam1_rec) << 3;
+  cam_dat |= (current_state.cam2_rec) << 2;
+
+  cam_dat |= (current_state.vtx_on) << 4;
+  cam_dat |= (current_state.vmux_state) << 5;
+  cam_dat |= (current_state.cam_ack) << 6;
+
+  // Encode
+
+  uint8_t buf[1] = { cam_dat };
+  Wire1.slaveWrite(buf, 1);
+  Serial.println("onRequest");
+}
+
 void onReceive(int len) {
   Serial.print("Recieved: ");
   while (Wire1.available()) {
     uint8_t recieve = Wire1.read();
     // Serial.print(recieve);
     // Serial.print(": ");
-    
+    current_state.cam_ack = !current_state.cam_ack;
     switch(recieve) {
       case 0:
-        digitalWrite(CAM1_ON_OFF, LOW);
+        // digitalWrite(CAM1_ON_OFF, LOW);
         Serial.println("Case 0\n");
+        current_state.cam1_on = false;
         break;
       case 1:
-        digitalWrite(CAM1_ON_OFF, HIGH);
+        // digitalWrite(CAM1_ON_OFF, HIGH);
         Serial.println("Case 1\n");
+        current_state.cam1_on = true;
         break;
       case 2:
-        digitalWrite(CAM2_ON_OFF, LOW);
+        // digitalWrite(CAM2_ON_OFF, LOW);
         Serial.println("Case 2\n");
+        current_state.cam2_on = false;
         break;
       case 3:
-        digitalWrite(CAM2_ON_OFF, HIGH);
+        // digitalWrite(CAM2_ON_OFF, HIGH);
         Serial.println("Case 3\n");
+        current_state.cam2_on = true;
         break;
       case 4:
-        digitalWrite(VTX_ON_OFF, LOW);
+        // digitalWrite(VTX_ON_OFF, LOW);
         Serial.println("Case 4\n");
+        current_state.vtx_on = false;
         break;
       case 5:
-        digitalWrite(VTX_ON_OFF, HIGH);
+        // digitalWrite(VTX_ON_OFF, HIGH);
         Serial.println("Case 5\n");
+        current_state.vtx_on = true;
         break;
       case 6:
-        digitalWrite(VIDEO_SELECT, LOW);
+        // digitalWrite(VIDEO_SELECT, LOW);
         Serial.println("Case 6\n");
+        current_state.vmux_state = false;
         break;
       case 7:
-        digitalWrite(VIDEO_SELECT, HIGH);
+        // digitalWrite(VIDEO_SELECT, HIGH);
         Serial.println("Case 7\n");
+        current_state.vmux_state = true;
         break;
       default:
         break;
@@ -120,8 +161,10 @@ void setup() {
     Wire.begin(BATTSENSE_SDA, BATTSENSE_SCL);
     Wire1.setPins(I2C_SDA, I2C_SCL);
 
-    Wire1.onReceive(onReceive);
     Wire1.begin((uint8_t)CAMBOARD_I2C_ADDR);
+    Wire1.onReceive(onReceive);
+    Wire1.onRequest(onRequest);
+
 
     pinMode(CAM1_RX, INPUT);
     pinMode(CAM1_TX, OUTPUT);
