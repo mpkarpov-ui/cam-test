@@ -83,42 +83,42 @@ void onReceive(int len) {
     current_state.cam_ack = !current_state.cam_ack;
     switch(recieve) {
       case 0:
-        // digitalWrite(CAM1_ON_OFF, LOW);
+        digitalWrite(CAM1_ON_OFF, LOW);
         Serial.println("Case 0\n");
         current_state.cam1_on = false;
         break;
       case 1:
-        // digitalWrite(CAM1_ON_OFF, HIGH);
+        digitalWrite(CAM1_ON_OFF, HIGH);
         Serial.println("Case 1\n");
         current_state.cam1_on = true;
         break;
       case 2:
-        // digitalWrite(CAM2_ON_OFF, LOW);
+        digitalWrite(CAM2_ON_OFF, LOW);
         Serial.println("Case 2\n");
         current_state.cam2_on = false;
         break;
       case 3:
-        // digitalWrite(CAM2_ON_OFF, HIGH);
+        digitalWrite(CAM2_ON_OFF, HIGH);
         Serial.println("Case 3\n");
         current_state.cam2_on = true;
         break;
       case 4:
-        // digitalWrite(VTX_ON_OFF, LOW);
+        digitalWrite(VTX_ON_OFF, LOW);
         Serial.println("Case 4\n");
         current_state.vtx_on = false;
         break;
       case 5:
-        // digitalWrite(VTX_ON_OFF, HIGH);
+        digitalWrite(VTX_ON_OFF, HIGH);
         Serial.println("Case 5\n");
         current_state.vtx_on = true;
         break;
       case 6:
-        // digitalWrite(VIDEO_SELECT, LOW);
+        digitalWrite(VIDEO_SELECT, LOW);
         Serial.println("Case 6\n");
         current_state.vmux_state = false;
         break;
       case 7:
-        // digitalWrite(VIDEO_SELECT, HIGH);
+        digitalWrite(VIDEO_SELECT, HIGH);
         Serial.println("Case 7\n");
         current_state.vmux_state = true;
         break;
